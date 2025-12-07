@@ -12,17 +12,21 @@ ECHO --------------------------------- >> %LOGFILE%
 :: Loop through numbers 1 to 254
 FOR /L %%i IN (1,1,254) DO (
     SET IP=10.1.10.%%i
+
+
+    ping -n 1 -w 100 !IP! | findstr /i "Reply from" > nul
     
-    :: Ping the IP and pipe the result to FINDSTR
-    ping -n 1 -w 100 !IP! | findstr /i "Reply from"
-    
-    :: Check the ERRORLEVEL: 0 means FINDSTR found the "Reply from" text.
-    if errorlevel 0 (
-        :: Display the reachable IP on the console
-        ECHO !IP!
+    :: 2. Check the ERRORLEVEL status set by findstr.
+    :: If "Reply from" was found, ERRORLEVEL will be 0.
+    if !errorlevel! equ 0 (
+        :: SET the status variable to 1 (Reachable)
+        SET "IP_STATUS=1"
         
-        :: Append the reachable IP to the log file
+        ECHO !IP! is REACHABLE.
         ECHO !IP! >> %LOGFILE%
+    ) ELSE (
+        :: Optional: If ERRORLEVEL is 1 (Not found/Unreachable)
+        ECHO !IP! is UNREACHABLE.
     )
 )
 
